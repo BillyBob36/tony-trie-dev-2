@@ -27,7 +27,14 @@ jobs:
 
       - name: Inject secrets into HTML
         run: |
-          sed -i 's|<script src="config.js"></script>|<script>\n    window.OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}";\n    window.SUPABASE_URL = "${{ secrets.SUPABASE_URL }}";\n    window.SUPABASE_ANON_KEY = "${{ secrets.SUPABASE_ANON_KEY }}";\n</script>|g' deploy/index.html
+          # Créer le script avec les secrets
+          cat > deploy/secrets-inject.js << 'EOF'
+          window.OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}";
+          window.SUPABASE_URL = "${{ secrets.SUPABASE_URL }}";
+          window.SUPABASE_ANON_KEY = "${{ secrets.SUPABASE_ANON_KEY }}";
+          EOF
+          # Remplacer la référence à config.js par le script injecté
+          sed -i 's|<script src="config.js"></script>|<script src="secrets-inject.js"></script>|g' deploy/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
