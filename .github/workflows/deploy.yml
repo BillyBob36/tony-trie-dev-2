@@ -3,8 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  workflow_dispatch:
 
 # Permissions nécessaires pour GitHub Pages
 permissions:
@@ -41,6 +40,8 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        with:
+          enablement: true
 
       - name: Build site
         run: |
