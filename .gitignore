@@ -16,6 +16,7 @@ tmp/
 # Fichiers de configuration locale
 .env
 .env.local
+secrets.js
 
 # Cache
 .cache/
