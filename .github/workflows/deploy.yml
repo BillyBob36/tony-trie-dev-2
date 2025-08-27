@@ -5,29 +5,16 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-# Permissions nécessaires pour GitHub Pages
+# Permissions nécessaires
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Permettre seulement un déploiement concurrent
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  contents: write
 
 jobs:
-  # Job de build
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
 
       - name: Create secrets configuration
         run: |
@@ -38,39 +25,9 @@ jobs:
           window.OPENAI_API_KEY = '${{ secrets.OPENAI_API_KEY }}';
           EOF
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-        with:
-          enablement: true
-
-      - name: Build site
-        run: |
-          # Créer le dossier de build
-          mkdir -p _site
-          
-          # Copier tous les fichiers nécessaires
-          cp *.html _site/
-          cp *.css _site/
-          cp *.js _site/
-          
-          # Copier le fichier de secrets
-          cp secrets.js _site/
-          
-          echo "Build completed successfully"
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '_site'
-
-  # Job de déploiement
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          exclude_assets: '.github,README.md,.gitignore'
