@@ -1,0 +1,22 @@
+# Fichiers Excel de test
+*.xlsx
+*.xls
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Dossiers temporaires
+temp/
+tmp/
+
+# Fichiers de configuration locale
+.env
+.env.local
+
+# Cache
+.cache/
+node_modules/

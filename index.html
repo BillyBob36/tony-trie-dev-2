@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets AI Matcher</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="config-deployed.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Google Sheets AI Matcher</h1>
+            <p>Trouvez des profils correspondant à vos critères avec l'intelligence artificielle</p>
+        </header>
+
+        <!-- Section d'authentification -->
+        <div id="auth-section" class="section">
+            <h2>🔐 Connexion Google</h2>
+            <div id="signin-button"></div>
+            <div id="user-info" style="display: none;">
+                <p>Connecté en tant que: <span id="user-name"></span></p>
+                <button id="signout-button" class="btn btn-secondary">Se déconnecter</button>
+            </div>
+        </div>
+
+        <!-- Section principale (cachée jusqu'à l'authentification) -->
+        <div id="main-content" style="display: none;">
+            
+            <!-- Configuration des critères -->
+            <div class="section">
+                <h2>📋 Configuration des Critères</h2>
+                
+                <div class="criteria-container">
+                    <h3>Critères de Filtrage</h3>
+                    <div id="criteria-list"></div>
+                    <button id="add-criteria" class="btn btn-primary">+ Ajouter un Critère</button>
+                </div>
+
+                <div class="matching-container">
+                    <h3>Données à Analyser</h3>
+                    <div id="target-data-config">
+                        <div class="data-selector">
+                            <label>Fichier source des profils:</label>
+                            <select id="target-spreadsheet" class="form-control">
+                                <option value="">Sélectionner un fichier...</option>
+                            </select>
+                        </div>
+                        <div class="data-selector">
+                            <label>Feuille:</label>
+                            <select id="target-sheet" class="form-control">
+                                <option value="">Sélectionner une feuille...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="output-container">
+                    <h3>Destination des Résultats</h3>
+                    <div id="output-config">
+                        <div class="data-selector">
+                            <label>Fichier de sortie:</label>
+                            <select id="output-spreadsheet" class="form-control">
+                                <option value="">Sélectionner un fichier...</option>
+                            </select>
+                        </div>
+                        <div class="data-selector">
+                            <label>Feuille de sortie:</label>
+                            <select id="output-sheet" class="form-control">
+                                <option value="">Sélectionner une feuille...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration de l'IA -->
+            <div class="section">
+                <h2>🤖 Configuration de l'IA</h2>
+                <div class="ai-config">
+                    <h3>Configuration IA</h3>
+                    
+                    <div class="ai-tabs">
+                        <button class="tab-btn active" data-tab="prompt">Prompt IA</button>
+                        <button class="tab-btn" data-tab="parameters">Paramètres</button>
+                        <button class="tab-btn" data-tab="tolerance">Tolérance</button>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <!-- Onglet Prompt IA -->
+                        <div id="prompt-tab" class="tab-panel active">
+                            <div class="form-group">
+                                <label for="ai-prompt">Prompt IA (Instructions pour l'analyse):</label>
+                                <div class="prompt-controls">
+                                    <button id="reset-prompt" class="btn btn-secondary btn-sm">Réinitialiser</button>
+                                    <button id="save-prompt" class="btn btn-primary btn-sm">Sauvegarder</button>
+                                </div>
+                                <textarea id="ai-prompt" rows="8" placeholder="Instructions pour l'IA..."></textarea>
+                                <div class="prompt-help">
+                                    <p><strong>Conseils pour un bon prompt :</strong></p>
+                                    <ul>
+                                        <li>Soyez précis sur les critères de correspondance</li>
+                                        <li>Définissez clairement ce qui constitue une correspondance valide</li>
+                                        <li>Incluez des exemples de correspondances acceptables</li>
+                                        <li>Spécifiez le format de réponse attendu (OUI/NON)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Onglet Paramètres -->
+                        <div id="parameters-tab" class="tab-panel">
+                            <div class="form-group">
+                                <label for="ai-model">Modèle IA:</label>
+                                <select id="ai-model">
+                                    <option value="gpt-5-nano" selected>GPT-5 Nano (Le plus rapide et économique)</option>
+                                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Rapide)</option>
+                                    <option value="gpt-4">GPT-4 (Plus précis)</option>
+                                    <option value="gpt-4-turbo">GPT-4 Turbo (Équilibré)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ai-temperature">Créativité (Temperature): <span id="temperature-value">0</span></label>
+                                <input type="range" id="ai-temperature" min="0" max="1" step="0.1" value="0">
+                                <small>0 = Très précis, 1 = Plus créatif</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ai-max-tokens">Tokens maximum:</label>
+                                <input type="number" id="ai-max-tokens" value="10" min="5" max="100">
+                                <small>Nombre maximum de tokens pour la réponse</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ai-timeout">Timeout (secondes):</label>
+                                <input type="number" id="ai-timeout" value="30" min="10" max="120">
+                                <small>Délai d'attente maximum pour chaque requête</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Onglet Tolérance -->
+                        <div id="tolerance-tab" class="tab-panel">
+                            <div class="form-group">
+                                <label for="match-threshold">Seuil de correspondance: <span id="threshold-value">95</span>%</label>
+                                <input type="range" id="match-threshold" min="0" max="100" step="5" value="95">
+                                <small>Score minimum pour considérer une correspondance comme valide</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="retry-attempts">Tentatives en cas d'erreur:</label>
+                                <input type="number" id="retry-attempts" value="3" min="1" max="10">
+                                <small>Nombre de tentatives avant d'abandonner une requête</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="batch-delay">Délai entre les lots (ms):</label>
+                                <input type="number" id="batch-delay" value="1000" min="100" max="5000" step="100">
+                                <small>Pause entre les lots pour éviter les limites de taux</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="fallback-matching" checked>
+                                    Utiliser la correspondance de secours en cas d'échec IA
+                                </label>
+                                <small>Active une correspondance basique si l'IA échoue</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="case-sensitive" checked>
+                                    Correspondance sensible à la casse
+                                </label>
+                                <small>Prendre en compte les majuscules/minuscules</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section de traitement -->
+            <div class="section">
+                <h2>⚡ Traitement</h2>
+                
+                <div class="form-group">
+                    <label for="rows-limit">Nombre de lignes à analyser:</label>
+                    <select id="rows-limit" class="form-control">
+                        <option value="100">100 lignes</option>
+                        <option value="200">200 lignes</option>
+                        <option value="500">500 lignes</option>
+                        <option value="all" selected>Toutes les lignes</option>
+                    </select>
+                    <small>Limitez le nombre de lignes pour des tests rapides</small>
+                </div>
+                
+                <div class="processing-controls">
+                    <button id="start-processing" class="btn btn-success btn-large">🚀 Démarrer l'Analyse</button>
+                    <button id="stop-processing" class="btn btn-danger" style="display: none;">⏹️ Arrêter</button>
+                </div>
+                
+                <div id="progress-section" style="display: none;">
+                    <div class="progress-bar">
+                        <div id="progress-fill"></div>
+                    </div>
+                    <div id="progress-text">Préparation...</div>
+                    <div id="processing-stats">
+                        <span id="processed-count">0</span> profils traités | 
+                        <span id="matched-count">0</span> correspondances trouvées
+                    </div>
+                </div>
+
+                <div id="results-section" style="display: none;">
+                    <h3>📊 Résultats</h3>
+                    <div id="results-summary"></div>
+                    <div id="results-preview"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter un critère -->
+    <div id="criteria-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Ajouter un Critère</h3>
+            <form id="criteria-form">
+                <div class="form-group">
+                    <label>Nom du critère:</label>
+                    <input type="text" id="criteria-name" class="form-control" placeholder="Ex: Entreprises intéressantes">
+                </div>
+                <div class="form-group">
+                    <label>Fichier Google Sheets:</label>
+                    <select id="criteria-spreadsheet" class="form-control">
+                        <option value="">Sélectionner un fichier...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Feuille:</label>
+                    <select id="criteria-sheet" class="form-control">
+                        <option value="">Sélectionner une feuille...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Colonne:</label>
+                    <select id="criteria-column" class="form-control">
+                        <option value="">Sélectionner une colonne...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Colonne correspondante dans les données cibles:</label>
+                    <select id="target-column" class="form-control">
+                        <option value="">Sélectionner une colonne...</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeCriteriaModal()">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
