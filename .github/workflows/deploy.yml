@@ -29,9 +29,9 @@ jobs:
         run: |
           # Créer le script avec les secrets
           cat > deploy/secrets-inject.js << 'EOF'
+          window.GOOGLE_API_KEY = "${{ secrets.GOOGLE_API_KEY }}";
+          window.GOOGLE_CLIENT_ID = "${{ secrets.GOOGLE_CLIENT_ID }}";
           window.OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}";
-          window.SUPABASE_URL = "${{ secrets.SUPABASE_URL }}";
-          window.SUPABASE_ANON_KEY = "${{ secrets.SUPABASE_ANON_KEY }}";
           EOF
           # Remplacer la référence à config.js par le script injecté
           sed -i 's|<script src="config.js"></script>|<script src="secrets-inject.js"></script>|g' deploy/index.html
