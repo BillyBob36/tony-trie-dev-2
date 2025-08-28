@@ -2,6 +2,8 @@
 
 🔍 Application web intelligente pour matcher des profils dans Google Sheets avec l'IA.
 
+*Dernière mise à jour: Configuration des secrets pour le déploiement*
+
 ## 🚀 Déploiement sur GitHub Pages
 
 ### Prérequis
