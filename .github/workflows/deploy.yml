@@ -33,8 +33,8 @@ jobs:
           window.GOOGLE_CLIENT_ID = "${{ secrets.GOOGLE_CLIENT_ID }}";
           window.OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}";
           EOF
-          # Remplacer la référence à config.js par le script injecté
-          sed -i 's|<script src="config.js"></script>|<script src="secrets-inject.js"></script>|g' deploy/index.html
+          # Remplacer la référence à secrets.js par le script injecté
+          sed -i 's|<script src="secrets.js"></script>|<script src="secrets-inject.js"></script>|g' deploy/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
