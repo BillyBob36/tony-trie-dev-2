@@ -58,7 +58,7 @@ function initClient() {
     const CONFIG = getConfig();
     
     // Vérifier si le Client ID est configuré
-    if (!CONFIG.GOOGLE || !CONFIG.GOOGLE.CLIENT_ID || CONFIG.GOOGLE.CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID') || CONFIG.GOOGLE.CLIENT_ID.includes('test-client-id')) {
+    if (!getConfig().GOOGLE || !getConfig().GOOGLE.CLIENT_ID || getConfig().GOOGLE.CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID') || getConfig().GOOGLE.CLIENT_ID.includes('test-client-id')) {
         console.warn('Google Client ID non configuré. Mode démo activé.');
         showDemoMode();
         return;
@@ -70,8 +70,8 @@ function initClient() {
             try {
                 // Initialiser le client de token pour OAuth 2.0
                 tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CONFIG.GOOGLE.CLIENT_ID,
-                    scope: CONFIG.GOOGLE.SCOPES,
+                    client_id: getConfig().GOOGLE.CLIENT_ID,
+        scope: getConfig().GOOGLE.SCOPES,
                     callback: (tokenResponse) => {
                         accessToken = tokenResponse.access_token;
                         isSignedIn = true;
@@ -273,7 +273,7 @@ function setupOutputEventHandlers() {
 // Chargement des Google Sheets
 async function loadSpreadsheets() {
     // En mode démo, ne pas charger les vrais spreadsheets
-    if (!CONFIG.GOOGLE.CLIENT_ID || CONFIG.GOOGLE.CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID') || CONFIG.GOOGLE.CLIENT_ID.includes('test-client-id')) {
+    if (!getConfig().GOOGLE.CLIENT_ID || getConfig().GOOGLE.CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID') || getConfig().GOOGLE.CLIENT_ID.includes('test-client-id')) {
         console.log('Mode démo - Utilisation des données simulées');
         return;
     }
@@ -285,11 +285,11 @@ async function loadSpreadsheets() {
     }
     
     try {
-        showLoading(CONFIG.MESSAGES.LOADING.SPREADSHEETS);
+        showLoading(getConfig().MESSAGES.LOADING.SPREADSHEETS);
         
         console.log('Chargement des spreadsheets avec accessToken:', accessToken ? 'présent' : 'absent');
         
-        const url = `https://www.googleapis.com/drive/v3/files?pageSize=${CONFIG.UI.MAX_SPREADSHEETS_DISPLAY}&q=mimeType%3D%27application%2Fvnd.google-apps.spreadsheet%27&fields=files(id%2C%20name)&key=${CONFIG.GOOGLE.API_KEY}`;
+        const url = `https://www.googleapis.com/drive/v3/files?pageSize=${getConfig().UI.MAX_SPREADSHEETS_DISPLAY}&q=mimeType%3D%27application%2Fvnd.google-apps.spreadsheet%27&fields=files(id%2C%20name)&key=${getConfig().GOOGLE.API_KEY}`;
         console.log('URL de requête:', url);
         
         const response = await fetch(url, {
@@ -315,7 +315,7 @@ async function loadSpreadsheets() {
         
         if (spreadsheets.length === 0) {
             console.warn('Aucun fichier Google Sheets trouvé');
-            showError(CONFIG.MESSAGES.ERROR.NO_SPREADSHEETS_FOUND);
+            showError(getConfig().MESSAGES.ERROR.NO_SPREADSHEETS_FOUND);
         } else {
             console.log('Spreadsheets trouvés:', spreadsheets.map(s => s.name));
         }
@@ -332,9 +332,9 @@ async function loadSpreadsheets() {
         
         // Vérifier si c'est une erreur d'API non activée
         if (error.message && error.message.includes('Google Drive API has not been used')) {
-            showError(CONFIG.MESSAGES.ERROR.API_NOT_ENABLED + '\n\nLien d\'activation: https://console.developers.google.com/apis/api/drive.googleapis.com/overview?project=802942339545');
+            showError(getConfig().MESSAGES.ERROR.API_NOT_ENABLED + '\n\nLien d\'activation: https://console.developers.google.com/apis/api/drive.googleapis.com/overview?project=802942339545');
         } else {
-            showError(CONFIG.MESSAGES.ERROR.SPREADSHEETS_LOAD_FAILED + ': ' + error.message);
+            showError(getConfig().MESSAGES.ERROR.SPREADSHEETS_LOAD_FAILED + ': ' + error.message);
         }
         
         hideLoading();
@@ -565,7 +565,7 @@ function addSearchToSelect(selectElement) {
 // Chargement des feuilles d'un spreadsheet
 async function loadSheets(spreadsheetId, targetSelectId) {
     // En mode démo, simuler des feuilles
-    if (!CONFIG.GOOGLE.CLIENT_ID || CONFIG.GOOGLE.CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID') || CONFIG.GOOGLE.CLIENT_ID.includes('test-client-id')) {
+    if (!getConfig().GOOGLE.CLIENT_ID || getConfig().GOOGLE.CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID') || getConfig().GOOGLE.CLIENT_ID.includes('test-client-id')) {
         const selector = document.getElementById(targetSelectId);
         const demoSheets = [
             { properties: { title: 'Feuille Demo 1' } },
@@ -592,7 +592,7 @@ async function loadSheets(spreadsheetId, targetSelectId) {
     }
     
     try {
-        showLoading(CONFIG.MESSAGES.LOADING.SHEETS);
+        showLoading(getConfig().MESSAGES.LOADING.SHEETS);
         
         const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`, {
             headers: {
@@ -610,7 +610,7 @@ async function loadSheets(spreadsheetId, targetSelectId) {
         const selector = document.getElementById(targetSelectId);
         
         if (sheets.length === 0) {
-            showError(CONFIG.MESSAGES.ERROR.NO_SHEETS_FOUND);
+            showError(getConfig().MESSAGES.ERROR.NO_SHEETS_FOUND);
         }
         
         selector.innerHTML = '<option value="">Sélectionner une feuille...</option>';
@@ -626,7 +626,7 @@ async function loadSheets(spreadsheetId, targetSelectId) {
         return sheets;
     } catch (error) {
         console.error('Erreur lors du chargement des feuilles:', error);
-        showError(CONFIG.MESSAGES.ERROR.SHEETS_LOAD_FAILED);
+        showError(getConfig().MESSAGES.ERROR.SHEETS_LOAD_FAILED);
         hideLoading();
         return [];
     }
@@ -1516,7 +1516,7 @@ async function checkWithAI(targetValue, criteriaValues) {
     const aiConfig = getAIConfig();
     
     // Vérifier que la clé API OpenAI est configurée
-    if (!CONFIG.OPENAI?.API_KEY) {
+    if (!getConfig().OPENAI?.API_KEY) {
         console.error('Clé API OpenAI non configurée');
         throw new Error('Clé API OpenAI manquante. Veuillez configurer votre clé API dans les variables d\'environnement.');
     }
@@ -1538,11 +1538,11 @@ async function checkWithAI(targetValue, criteriaValues) {
                 }
             ];
             
-            const response = await fetch(CONFIG.OPENAI?.API_URL || 'https://api.openai.com/v1/chat/completions', {
+            const response = await fetch(getConfig().OPENAI?.API_URL || 'https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${CONFIG.OPENAI?.API_KEY || ''}`
+                    'Authorization': `Bearer ${getConfig().OPENAI?.API_KEY || ''}`
                 },
                 body: JSON.stringify({
                     model: aiConfig.model,
