@@ -1,5 +1,17 @@
 // Utiliser la configuration externe
-const CONFIG = window.CONFIG || {};
+// CONFIG sera défini par secrets-inject.js
+function getConfig() {
+    return window.CONFIG || {};
+}
+
+// Fonction pour attendre que CONFIG soit disponible
+function waitForConfig(callback) {
+    if (window.CONFIG && window.CONFIG.GOOGLE && window.CONFIG.GOOGLE.CLIENT_ID) {
+        callback();
+    } else {
+        setTimeout(() => waitForConfig(callback), 100);
+    }
+}
 
 // Valider la configuration au démarrage
 if (typeof validateConfig === 'function') {
@@ -23,7 +35,10 @@ let matchedCount = 0;
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
-    initializeGoogleAPI();
+    // Attendre que CONFIG soit disponible avant d'initialiser l'API Google
+    waitForConfig(() => {
+        initializeGoogleAPI();
+    });
     setupEventListeners();
     generateDefaultPrompt();
     setupAIConfigTabs();
@@ -40,8 +55,10 @@ let tokenClient;
 let accessToken = null;
 
 function initClient() {
+    const CONFIG = getConfig();
+    
     // Vérifier si le Client ID est configuré
-    if (!CONFIG.GOOGLE.CLIENT_ID || CONFIG.GOOGLE.CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID') || CONFIG.GOOGLE.CLIENT_ID.includes('test-client-id')) {
+    if (!CONFIG.GOOGLE || !CONFIG.GOOGLE.CLIENT_ID || CONFIG.GOOGLE.CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID') || CONFIG.GOOGLE.CLIENT_ID.includes('test-client-id')) {
         console.warn('Google Client ID non configuré. Mode démo activé.');
         showDemoMode();
         return;
