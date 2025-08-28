@@ -34,9 +34,37 @@ jobs:
         run: |
           # Créer le script avec les secrets
           cat > deploy/secrets-inject.js << 'EOF'
+          // Variables de secrets injectées
           window.GOOGLE_API_KEY = "${{ secrets.GOOGLE_API_KEY }}";
           window.GOOGLE_CLIENT_ID = "${{ secrets.GOOGLE_CLIENT_ID }}";
           window.OPENAI_API_KEY = "${{ secrets.OPENAI_API_KEY }}";
+          
+          // Configuration compatible avec l'application
+          window.CONFIG = {
+              GOOGLE: {
+                  CLIENT_ID: window.GOOGLE_CLIENT_ID,
+                  API_KEY: window.GOOGLE_API_KEY,
+                  SCOPES: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
+                  DISCOVERY_DOCS: [
+                      'https://sheets.googleapis.com/$discovery/rest?version=v4',
+                      'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+                  ]
+              },
+              OPENAI: {
+                  API_KEY: window.OPENAI_API_KEY,
+                  MODEL: 'gpt-3.5-turbo',
+                  MAX_TOKENS: 150,
+                  TEMPERATURE: 0.3,
+                  API_URL: 'https://api.openai.com/v1/chat/completions'
+              },
+              PROCESSING: {
+                  BATCH_SIZE: 50,
+                  BATCH_DELAY: 1000,
+                  MAX_RETRIES: 3,
+                  RETRY_DELAY: 2000,
+                  MAX_CRITERIA_PER_REQUEST: 10
+              }
+          };
           EOF
           # Remplacer la référence à secrets.js par le script injecté
           sed -i 's|<script src="secrets.js"></script>|<script src="secrets-inject.js"></script>|g' deploy/index.html
