@@ -1,0 +1,3 @@
+window.GOOGLE_API_KEY = "AIzaSyCa6k_Jl3XPn76UhlIe_4nasKU2v11-UWg";
+window.GOOGLE_CLIENT_ID = "802942339545-djuda331o72r3b1f2d6ra29e8hoqea56.apps.googleusercontent.com";
+window.OPENAI_API_KEY = "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";
