@@ -1,7 +1,68 @@
 // Utiliser la configuration externe
 // CONFIG sera défini par secrets-inject.js
 function getConfig() {
-    return window.CONFIG || {};
+    const defaultConfig = {
+        MESSAGES: {
+            LOADING: {
+                SPREADSHEETS: 'Chargement des fichiers Google Sheets...',
+                SHEETS: 'Chargement des feuilles...'
+            },
+            ERROR: {
+                NO_SPREADSHEETS_FOUND: 'Aucun fichier Google Sheets trouvé',
+                API_NOT_ENABLED: 'L\'API Google Drive n\'est pas activée pour ce projet',
+                SPREADSHEETS_LOAD_FAILED: 'Échec du chargement des fichiers',
+                NO_SHEETS_FOUND: 'Aucune feuille trouvée',
+                SHEETS_LOAD_FAILED: 'Échec du chargement des feuilles'
+            }
+        },
+        UI: {
+            MAX_SPREADSHEETS_DISPLAY: 50
+        },
+        GOOGLE: {
+            API_KEY: '',
+            CLIENT_ID: '',
+            SCOPES: ['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/spreadsheets']
+        },
+        OPENAI: {
+            API_KEY: '',
+            API_URL: 'https://api.openai.com/v1/chat/completions'
+        }
+    };
+    
+    if (!window.CONFIG) {
+        console.warn('window.CONFIG non défini, utilisation de la configuration par défaut');
+        return defaultConfig;
+    }
+    
+    // Fusionner avec la configuration par défaut pour s'assurer que toutes les propriétés existent
+    return {
+        ...defaultConfig,
+        ...window.CONFIG,
+        MESSAGES: {
+            ...defaultConfig.MESSAGES,
+            ...window.CONFIG.MESSAGES,
+            LOADING: {
+                ...defaultConfig.MESSAGES.LOADING,
+                ...(window.CONFIG.MESSAGES?.LOADING || {})
+            },
+            ERROR: {
+                ...defaultConfig.MESSAGES.ERROR,
+                ...(window.CONFIG.MESSAGES?.ERROR || {})
+            }
+        },
+        UI: {
+            ...defaultConfig.UI,
+            ...(window.CONFIG.UI || {})
+        },
+        GOOGLE: {
+            ...defaultConfig.GOOGLE,
+            ...(window.CONFIG.GOOGLE || {})
+        },
+        OPENAI: {
+            ...defaultConfig.OPENAI,
+            ...(window.CONFIG.OPENAI || {})
+        }
+    };
 }
 
 // Fonction pour attendre que CONFIG soit disponible
